@@ -10,7 +10,7 @@
   // ============================================================================
   // 1. THEME SWITCHER (Dark / Light)
   // ============================================================================
-  const themeToggle = document.getElementById('themeToggle');
+  const themeToggles = document.querySelectorAll('.theme-toggle-btn, #themeToggle');
   const htmlRoot = document.documentElement;
 
   function getPreferredTheme() {
@@ -27,34 +27,43 @@
   // Initialize theme
   applyTheme(getPreferredTheme());
 
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
+  themeToggles.forEach((btn) => {
+    btn.addEventListener('click', () => {
       const current = htmlRoot.getAttribute('data-theme') || 'dark';
       const next = current === 'dark' ? 'light' : 'dark';
       applyTheme(next);
     });
-  }
+  });
 
   // ============================================================================
   // 2. MOBILE DRAWER NAVIGATION
   // ============================================================================
   const mobileToggle = document.getElementById('mobileMenuToggle');
   const mobileDrawer = document.getElementById('mobileDrawer');
-  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+  const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link, .drawer-brand');
 
   function openMobileMenu() {
-    mobileToggle.classList.add('active');
-    mobileToggle.setAttribute('aria-expanded', 'true');
-    mobileDrawer.classList.add('open');
-    mobileDrawer.setAttribute('aria-hidden', 'false');
+    if (mobileToggle) {
+      mobileToggle.classList.add('active');
+      mobileToggle.setAttribute('aria-expanded', 'true');
+    }
+    if (mobileDrawer) {
+      mobileDrawer.classList.add('open');
+      mobileDrawer.setAttribute('aria-hidden', 'false');
+    }
     document.body.style.overflow = 'hidden';
   }
 
   function closeMobileMenu() {
-    mobileToggle.classList.remove('active');
-    mobileToggle.setAttribute('aria-expanded', 'false');
-    mobileDrawer.classList.remove('open');
-    mobileDrawer.setAttribute('aria-hidden', 'true');
+    if (mobileToggle) {
+      mobileToggle.classList.remove('active');
+      mobileToggle.setAttribute('aria-expanded', 'false');
+    }
+    if (mobileDrawer) {
+      mobileDrawer.classList.remove('open');
+      mobileDrawer.setAttribute('aria-hidden', 'true');
+    }
     document.body.style.overflow = '';
   }
 
@@ -63,6 +72,10 @@
       const isOpen = mobileDrawer.classList.contains('open');
       isOpen ? closeMobileMenu() : openMobileMenu();
     });
+
+    if (closeDrawerBtn) {
+      closeDrawerBtn.addEventListener('click', closeMobileMenu);
+    }
 
     mobileNavLinks.forEach((link) => {
       link.addEventListener('click', closeMobileMenu);
