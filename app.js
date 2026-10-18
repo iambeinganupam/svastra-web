@@ -28,7 +28,9 @@
   applyTheme(getPreferredTheme());
 
   themeToggles.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const current = htmlRoot.getAttribute('data-theme') || 'dark';
       const next = current === 'dark' ? 'light' : 'dark';
       applyTheme(next);
@@ -68,17 +70,30 @@
   }
 
   if (mobileToggle && mobileDrawer) {
-    mobileToggle.addEventListener('click', () => {
+    mobileToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const isOpen = mobileDrawer.classList.contains('open');
       isOpen ? closeMobileMenu() : openMobileMenu();
     });
 
     if (closeDrawerBtn) {
-      closeDrawerBtn.addEventListener('click', closeMobileMenu);
+      closeDrawerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMobileMenu();
+      });
     }
 
     mobileNavLinks.forEach((link) => {
-      link.addEventListener('click', closeMobileMenu);
+      link.addEventListener('click', () => {
+        closeMobileMenu();
+      });
+    });
+
+    // Don't close when tapping inside drawer content
+    mobileDrawer.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
 
     // Close on outside click
@@ -367,48 +382,50 @@
       let dispatched = false;
       try {
         // Attempt 1: Svastra Web Vercel Serverless Function (/api/contact)
-        const res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            fullName,
-            emailAddr,
-            orgName,
-            sectorSelect,
-            inquirySubject,
-            messageText
-          })
-        });
-
-        if (res.ok) {
-          dispatched = true;
-          const data = await res.json().catch(() => ({}));
-          console.log('Dispatched via Svastra Vercel API:', data);
-        } else {
-          console.warn('Vercel API returned non-OK status:', res.status);
-        }
-      } catch (apiErr) {
-        console.warn('Vercel /api/contact route error:', apiErr);
-      }
-
-      // Attempt 2: FormSubmit AJAX Fallback (if running without serverless function)
-      if (!dispatched) {
         try {
-          const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
+          const res = await fetch('/api/contact', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+              fullName,
+              emailAddr,
+              orgName,
+              sectorSelect,
+              inquirySubject,
+              messageText
+            })
           });
-          const data = await res.json().catch(() => ({}));
-          console.log('Dispatched via FormSubmit:', data);
-        } catch (netErr) {
-          console.warn('FormSubmit notification fallback:', netErr);
+
+          if (res.ok) {
+            dispatched = true;
+            const data = await res.json().catch(() => ({}));
+            console.log('Dispatched via Svastra Vercel API:', data);
+          } else {
+            console.warn('Vercel API returned non-OK status:', res.status);
+          }
+        } catch (apiErr) {
+          console.warn('Vercel /api/contact route error:', apiErr);
+        }
+
+        // Attempt 2: FormSubmit AJAX Fallback (if running without serverless function)
+        if (!dispatched) {
+          try {
+            const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            console.log('Dispatched via FormSubmit:', data);
+          } catch (netErr) {
+            console.warn('FormSubmit notification fallback:', netErr);
+          }
         }
       } finally {
         // Restore submit button

@@ -277,6 +277,13 @@ img, svg {
   justify-content: center;
   cursor: pointer;
   transition: all var(--transition-fast);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+
+.icon-btn svg {
+  pointer-events: none;
 }
 
 .icon-btn:hover {
@@ -405,20 +412,24 @@ img, svg {
   display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
 }
 
 .mobile-toggle span {
   width: 100%;
-  height: 2px;
+  height: 2.5px;
   background-color: var(--text-primary);
   border-radius: 2px;
   transition: all var(--transition-normal);
+  pointer-events: none;
 }
 
 .mobile-toggle.active span:nth-child(1) {
