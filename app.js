@@ -364,36 +364,51 @@
       }
 
       // Execute actual email dispatch
+      let dispatched = false;
       try {
-        // Attempt 1: Free FormSubmit AJAX endpoint delivering directly to iambeinganupam@gmail.com
-        const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
+        // Attempt 1: Svastra Web Vercel Serverless Function (/api/contact)
+        const res = await fetch('/api/contact', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            fullName,
+            emailAddr,
+            orgName,
+            sectorSelect,
+            inquirySubject,
+            messageText
+          })
         });
-        const data = await res.json().catch(() => ({}));
-        console.log('Form submission dispatched successfully:', data);
-      } catch (netErr) {
-        console.warn('Direct FormSubmit notification:', netErr);
-        // Attempt 2: Local / Render backend API route fallback
+
+        if (res.ok) {
+          dispatched = true;
+          const data = await res.json().catch(() => ({}));
+          console.log('Dispatched via Svastra Vercel API:', data);
+        } else {
+          console.warn('Vercel API returned non-OK status:', res.status);
+        }
+      } catch (apiErr) {
+        console.warn('Vercel /api/contact route error:', apiErr);
+      }
+
+      // Attempt 2: FormSubmit AJAX Fallback (if running without serverless function)
+      if (!dispatched) {
         try {
-          await fetch('/api/v1/contact', {
+          const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: fullName,
-              email: emailAddr,
-              organization: orgName,
-              sector: sectorSelect,
-              subject: inquirySubject,
-              message: messageText
-            })
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
           });
-        } catch (backendErr) {
-          console.warn('Backend contact route fallback notice:', backendErr);
+          const data = await res.json().catch(() => ({}));
+          console.log('Dispatched via FormSubmit:', data);
+        } catch (netErr) {
+          console.warn('FormSubmit notification fallback:', netErr);
         }
       } finally {
         // Restore submit button
